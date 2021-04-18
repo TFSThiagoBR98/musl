@@ -24,6 +24,7 @@ extern hidden const struct __locale_struct __c_dot_utf8_locale;
 hidden const struct __locale_map *__get_locale(int, const char *);
 hidden const char *__mo_lookup(const void *, size_t, const char *);
 hidden const char *__lctrans(const char *, const struct __locale_map *);
+hidden const char *__lctrans_failsafe(const char * msg, const char * failsafe, const struct __locale_map *);
 hidden const char *__lctrans_cur(const char *);
 hidden const char *__lctrans_impl(const char *, const struct __locale_map *);
 hidden int __loc_is_allocated(locale_t);
@@ -31,6 +32,7 @@ hidden char *__gettextdomain(void);
 
 #define LOC_MAP_FAILED ((const struct __locale_map *)-1)
 
+#define LCTRANS_FAILSAFE(msg, failsafe, lc, loc) __lctrans_failsafe(msg, failsafe, (loc)->cat[(lc)])
 #define LCTRANS(msg, lc, loc) __lctrans(msg, (loc)->cat[(lc)])
 #define LCTRANS_CUR(msg) __lctrans_cur(msg)
 

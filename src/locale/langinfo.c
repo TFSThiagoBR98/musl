@@ -26,11 +26,36 @@ static const char c_time[] =
 static const char c_messages[] = "^[yY]\0" "^[nN]\0" "yes\0" "no";
 static const char c_numeric[] = ".\0" "";
 
+static const char lc_time_map[] =
+	"abday_1\0" "abday_2\0" "abday_3\0" "abday_4\0" "abday_5\0" "abday_6\0" "abday_7\0"
+	"day_1\0" "day_2\0" "day_3\0" "day_4\0"
+	"day_5\0" "day_6\0" "day_7\0"
+	"abmon_1\0" "abmon_2\0" "abmon_3\0" "abmon_4\0" "abmon_5\0" "abmon_6\0"
+	"abmon_7\0" "abmon_8\0" "abmon_9\0" "abmon_10\0" "abmon_11\0" "abmon_12\0"
+	"mon_1\0"   "mon_2\0" "mon_3\0"    "mon_4\0"
+	"mon_5\0"       "mon_6\0"     "mon_7\0"     "mon_8\0"
+	"mon_9\0" "mon_10\0"  "mon_11\0" "mon_12\0"
+	"am\0" "pm\0"
+	"d_t_fmt\0"
+	"d_fmt\0"
+	"t_fmt\0"
+	"t_fmt_ampm\0"
+	"era\0"
+	"era_year\0"
+	"era_d_fmt\0"
+	"alt_digits\0"
+	"era_d_t_fmt\0"
+	"era_t_fmt";
+
+static const char lc_messages_map[] = "yesexpr\0" "noexpr\0" "yesstr\0" "nostr";
+static const char lc_numeric_map[] = "decimal_point\0" "thousands_sep";
+
 char *__nl_langinfo_l(nl_item item, locale_t loc)
 {
 	int cat = item >> 16;
 	int idx = item & 65535;
 	const char *str;
+	const char *failsafe;
 
 	if (item == CODESET) return loc->cat[LC_CTYPE] ? "UTF-8" : "ASCII";
 
@@ -41,11 +66,13 @@ char *__nl_langinfo_l(nl_item item, locale_t loc)
 	switch (cat) {
 	case LC_NUMERIC:
 		if (idx > 1) return "";
-		str = c_numeric;
+		str = lc_numeric_map;
+		failsafe = c_numeric;
 		break;
 	case LC_TIME:
 		if (idx > 0x31) return "";
-		str = c_time;
+		str = lc_time_map;
+		failsafe = c_time;
 		break;
 	case LC_MONETARY:
 		if (idx > 0) return "";
@@ -53,15 +80,18 @@ char *__nl_langinfo_l(nl_item item, locale_t loc)
 		break;
 	case LC_MESSAGES:
 		if (idx > 3) return "";
-		str = c_messages;
+		str = lc_messages_map;
+		failsafe = c_messages;
 		break;
 	default:
 		return "";
 	}
 
 	for (; idx; idx--, str++) for (; *str; str++);
-	if (cat != LC_NUMERIC && *str) str = LCTRANS(str, cat, loc);
-	return (char *)str;
+	for (; idx; idx--, failsafe++) for (; *failsafe; failsafe++);
+
+	if (*failsafe) failsafe = LCTRANS_FAILSAFE(str, failsafe, cat, loc);
+	return (char *)failsafe;
 }
 
 char *__nl_langinfo(nl_item item)
