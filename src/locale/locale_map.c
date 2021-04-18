@@ -19,6 +19,20 @@ const char *__lctrans_impl(const char *msg, const struct __locale_map *lm)
 	return trans ? trans : msg;
 }
 
+const char *__lctrans_failsafe(const char *msg, const char *failsafe, const struct __locale_map *lm)
+{
+	const char *trans = 0;
+	if (lm) trans = __mo_lookup(lm->map, lm->map_size, msg);
+	return trans ? trans : failsafe;
+}
+
+int __lcint_failsafe(const char *msg, int failsafe, const struct __locale_map *lm)
+{
+	const char *trans = 0;
+	if (lm) trans = __mo_lookup(lm->map, lm->map_size, msg);
+	return trans ? atoi(trans) : failsafe;
+}
+
 static const char envvars[][12] = {
 	"LC_CTYPE",
 	"LC_NUMERIC",
